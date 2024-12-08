@@ -15,7 +15,7 @@ def getPrice(title):
         game = soup.find('div', {"data-game-name": titleForDiv})
         price = game.find('span', {"class": "price-inner numeric"}).get_text()
     except AttributeError:
-        print('Could not retrieve pricing information for {}'.format(game))
+        print('Could not retrieve pricing information for {}'.format(title))
     
     return price
 
