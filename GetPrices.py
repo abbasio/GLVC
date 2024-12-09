@@ -1,12 +1,21 @@
 from bs4 import BeautifulSoup
 import requests
+import concurrent.futures
 
 
-def getPrice(title):
+def get_price(title):
     price = "No Price Found"
     formattedTitle = title.lower().replace(":", "")
     titleForURL = formattedTitle.replace("'", "%27").replace(" ", "+")
-    titleForDiv = formattedTitle.replace("'", "-").replace(" ", "-")
+    titleForDiv = formattedTitle.replace("'", "") \
+                                .replace("!", "") \
+                                .replace(" & ", " ") \
+                                .replace(" ", "-") \
+                                .replace("#", "") \
+                                .replace(".", "") \
+                                .replace("+", "") \
+                                .replace("?", "")
+    
     URL = 'https://gg.deals/games/?title={}'.format(titleForURL)
     
     try:
@@ -17,16 +26,17 @@ def getPrice(title):
     except AttributeError:
         print('Could not retrieve pricing information for {}'.format(title))
     
-    return price
+    return title, price.replace("~", "")
 
 def buildCsv(titles):
     data = [
             ['Title', 'Price']
         ]
-    for title in titles:
-        price = getPrice(title)
-        data.append([title, price])
-    
+
+    with concurrent.futures.ThreadPoolExecutor(20) as executor:
+        results = executor.map(get_price, titles)
+        for result in results:
+            data.append(result)
     
     try: 
         csv_file_path = 'games.csv'
@@ -38,5 +48,5 @@ def buildCsv(titles):
 
 
 
-gamesList = []
+gamesList = ["112 Operator", "911 Operator", "Stick Fight: The Game"]
 buildCsv(gamesList)
